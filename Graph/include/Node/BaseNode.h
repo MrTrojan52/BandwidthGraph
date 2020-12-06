@@ -1,5 +1,5 @@
 //
-// Created by Trojan on 28.11.2020.
+// Created by Trojan on 07.12.2020.
 //
 
 #ifndef BANDWIDTHGRAPH_BASENODE_H
@@ -7,20 +7,18 @@
 
 #include "Node/INode.h"
 
-class CBaseNode : public INode
+#include "nlohmann/json.hpp"
+
+class BaseNode : public INode
 {
     public:
-        CBaseNode();
+        void fromJSON(const nlohmann::json& j) override;
+        std::string getStringProperty(const std::string& name) override;
+        int getIntProperty(const std::string& name) override;
+        virtual ~BaseNode() {};
 
-        NodeList& getNeighbours() override { return m_Neighbours; }
-
-        void addNeighbour(INode* pNode) override { m_Neighbours.push_back(pNode); }
-
-        NodeType getNodeType() override { return m_Type; }
-
-    private:
-        NodeList m_Neighbours;
-        NodeType m_Type;
+    protected:
+        std::unordered_map<std::string, std::string> m_properties;
 };
 
 #endif //BANDWIDTHGRAPH_BASENODE_H
