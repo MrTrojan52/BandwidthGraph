@@ -5,51 +5,14 @@
 #include <iostream>
 #include <fstream>
 
-#include "Graph/BaseGraph.h"
+#include "Graph/Graph.h"
 #include "common/GraphCommon.h"
 #include "Factory/BaseJsonFactory.h"
 #include "Node/INode.h"
 
 using namespace nlohmann;
 
-BaseGraph::~BaseGraph() noexcept
-{
-    for (auto x : m_Nodes)
-    {
-        delete x.second;
-    }
-
-    m_Nodes.clear();
-    m_Arcs.clear();
-}
-
-void BaseGraph::addNode(INode* pNode)
-{
-    m_Nodes[pNode->getIntProperty(NodeConsts::ID_PROP)] = pNode;
-}
-
-void BaseGraph::removeNode(int id)
-{
-    m_Nodes.erase(id);
-
-    // TODO: remove all arcs to and from this node
-}
-
-void BaseGraph::addArc(Arc arc)
-{
-    m_Arcs.insert(arc);
-}
-
-void BaseGraph::removeArc(int from, int to)
-{
-    auto it = m_Arcs.find({from, to});
-    if (it != m_Arcs.end())
-    {
-        m_Arcs.erase(it);
-    }
-}
-
-void BaseGraph::fromJSONFile(const std::string& sFileName)
+void Graph::fromJSONFile(const std::string& sFileName)
 {
     std::ifstream iFile(sFileName);
     std::string errorMSG;
@@ -73,7 +36,7 @@ void BaseGraph::fromJSONFile(const std::string& sFileName)
                         INode* pNode = BaseJSONFactory::GetInstance().createNode(jNode);
                         if (pNode != nullptr)
                         {
-                            addNode(pNode);
+                            //addNode(pNode);
                             if (jNode.contains(NodeConsts::ARCS_PROP))
                             {
                                 auto jArcs = jNode[NodeConsts::ARCS_PROP];
@@ -108,7 +71,7 @@ void BaseGraph::fromJSONFile(const std::string& sFileName)
     }
 }
 
-void BaseGraph::addArcsFromJSONForNode(int from, const json& j)
+void Graph::addArcsFromJSONForNode(int from, const json& j)
 {
     if (j.is_array())
     {
@@ -122,7 +85,7 @@ void BaseGraph::addArcsFromJSONForNode(int from, const json& j)
                 {
                     weight = arc[ArcConsts::WEIGHT_TAG].get<int>();
                 }
-                addArc({from, to, weight});
+                addEdge(from, to, weight);
             }
         }
     }
@@ -131,3 +94,55 @@ void BaseGraph::addArcsFromJSONForNode(int from, const json& j)
         std::cerr << "Arcs from " + std::to_string(from) + " cannot be added. Wrong file format!";
     }
 }
+
+count_t Graph::getVertexesCount() const
+{
+    return m_nVertexesCount;
+}
+
+count_t Graph::getEdgesCount() const
+{
+    return m_nEdgesCount;
+}
+
+void Graph::addEdge(index_t from, index_t to, weight_t weight)
+{
+    if ((FIND_IN_CONTAINER(m_ActiveNodes, from) && m_ActiveNodes[from]) &&
+        (FIND_IN_CONTAINER(m_ActiveNodes, to) && m_ActiveNodes[to]))
+    {
+        m_EdgesOut.insert({from, to, weight});
+        m_EdgesOut.insert({to, from, weight});
+
+        ++m_nEdgesCount;
+    }
+    else
+    {
+        throw std::runtime_error("Error: Incorrect edge!");
+    }
+}
+
+void Graph::addNode(index_t id)
+{
+    if (!FIND_IN_CONTAINER(m_ActiveNodes, id))
+    {
+        m_ActiveNodes[id] = true;
+        m_nVertexesCount++;
+    }
+}
+
+bool Graph::hasNode(index_t nodeIndex) const
+{
+    auto it = m_ActiveNodes.find(nodeIndex);
+    return ((it != m_ActiveNodes.end()) && (it->second));
+}
+
+void Graph::addWeightedEdgesAndNodes(std::initializer_list<WeightedEdge> edges)
+{
+    for (auto e : edges)
+    {
+        addNode(e.from);
+        addNode(e.to);
+        addEdge(e.from, e.to, e.weight);
+    }
+}
+

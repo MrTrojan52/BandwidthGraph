@@ -1,7 +1,9 @@
 #include <iostream>
+
 #include "omp.h"
 
-#include "Graph/BaseGraph.h"
+#include "Graph/Graph.h"
+#include "Algorithms/Path/Dijkstra.h"
 
 int main() {
     /*std::cout << "Hello, World!" << std::endl;
@@ -10,6 +12,36 @@ int main() {
         std::cout << omp_get_num_threads();
     };
     return 0;*/
-    BaseGraph g;
-    g.fromJSONFile("test.json");
+    Graph g;
+    g.addWeightedEdgesAndNodes(
+            {
+                /*{1, 6, 14},
+                {1,2,7},
+                {1,3,9},
+                {2,3,10},
+                {2,4,15},
+                {3, 4, 11},
+                {3, 6, 2},
+                {5,4,6},
+                {6,5,9},*/
+
+                    /*{1,2,3},
+                    {1,3,11},
+                    {1,4,7},
+                    {2,4,15},
+                    {2,3,7},
+                    {3,5,3},
+                    {4,5,5}*/
+
+                    {1,2,1},
+                    {1,3,2},
+                    {2,3,1}
+            }
+    );
+
+    Dijkstra d(g, 1);
+    d.run();
+
+    return 0;
+
 }
