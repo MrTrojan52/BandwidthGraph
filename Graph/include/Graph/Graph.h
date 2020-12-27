@@ -5,6 +5,7 @@
 #ifndef BANDWIDTHGRAPH_GRAPH_H
 #define BANDWIDTHGRAPH_GRAPH_H
 
+#include <omp.h>
 #include <nlohmann/json.hpp>
 #include <set>
 #include <unordered_map>
@@ -22,6 +23,7 @@ class Graph
         Graph()
         : m_nVertexesCount(0)
         , m_nEdgesCount(0)
+        , m_MaxEdgeWeight(0.0)
         { }
 
         ~Graph() = default;
@@ -36,7 +38,7 @@ class Graph
         std::vector<WeightedEdge> getEdgesFrom(index_t nodeIndex);
 
         template <typename func_obj>
-        void forNeighbours(index_t nodeIndex, func_obj func) const;
+        void forNeighbours(index_t nodeIndex, bool bInvert, func_obj func) const;
 
         template <typename func_obj>
         void parallelForNodes(func_obj func) const;
@@ -49,18 +51,20 @@ private:
         std::set<WeightedEdge, WeightedEdgeSetCmp> m_EdgesOut;
         count_t m_nVertexesCount;
         count_t m_nEdgesCount;
+        weight_t m_MaxEdgeWeight;
 
 };
 
 template <typename func_obj>
-void Graph::forNeighbours(index_t nodeIndex, func_obj func) const
+void Graph::forNeighbours(index_t nodeIndex, bool bInvert, func_obj func) const
 {
     auto it = std::find_if(m_EdgesOut.begin(), m_EdgesOut.end(),
                            [nodeIndex](const WeightedEdge& e1) { return (e1.from == nodeIndex);});
 
     while (it != m_EdgesOut.end() && (it->from == nodeIndex))
     {
-        func(it->to, it->weight);
+        weight_t w = bInvert ? (std::abs(it->weight - m_MaxEdgeWeight) + 1) : it->weight;
+        func(it->to, w);
         it++; // Go forward because all items are sorted
     }
 }

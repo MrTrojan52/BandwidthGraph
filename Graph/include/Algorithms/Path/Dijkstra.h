@@ -10,9 +10,12 @@
 class Dijkstra : public APathAlgorithm
 {
     public:
-        Dijkstra(const Graph& rGraph, index_t startV, index_t endV = emptyIndex);
+        Dijkstra(const Graph& rGraph, index_t startV, bool bInvertWeights = false, index_t endV = emptyIndex);
 
         void run() override;
+
+    private:
+        bool m_bInvertWeights;
 };
 
 

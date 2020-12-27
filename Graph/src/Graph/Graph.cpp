@@ -114,6 +114,11 @@ void Graph::addEdge(index_t from, index_t to, weight_t weight)
         m_EdgesOut.insert({to, from, weight});
 
         ++m_nEdgesCount;
+
+        if (weight > m_MaxEdgeWeight)
+        {
+            m_MaxEdgeWeight = weight;
+        }
     }
     else
     {

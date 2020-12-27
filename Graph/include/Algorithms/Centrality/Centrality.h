@@ -23,7 +23,7 @@ class Centrality : public BaseAlgorithm
         void run() override = 0;
 
     protected:
-        std::vector<double> m_NodesScoreData;
+        std::unordered_map<index_t, double> m_NodesScoreData;
         bool m_bNormalized;
 };
 

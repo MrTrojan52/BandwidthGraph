@@ -4,32 +4,34 @@
 
 #include <omp.h>
 #include <memory>
+#include <iostream>
 
 #include "Algorithms/Centrality/BetweennessCentrality.h"
 #include "Algorithms/Path/Dijkstra.h"
 
 void BetweennessCentrality::run()
 {
+    double dStartTime = omp_get_wtime();
     count_t nodeCnt = m_Graph.getVertexesCount();
     m_NodesScoreData.clear();
-    m_NodesScoreData.resize(nodeCnt);
 
     const int nMaxThreads = omp_get_max_threads();
+    std::cout << "Start BetweennessCentrality with " << nMaxThreads << " threads" << std::endl;
 
-    std::vector<std::vector<double>> deps(nMaxThreads, std::vector<double>(nodeCnt));
+    std::vector<std::unordered_map<index_t, double>> deps(nMaxThreads);
     std::vector<std::unique_ptr<APathAlgorithm>> pathSubTasks;
     pathSubTasks.resize(nMaxThreads);
 
     #pragma omp parallel
     {
         int threadId = omp_get_thread_num();
-        pathSubTasks[threadId] = std::unique_ptr<APathAlgorithm>(new Dijkstra(m_Graph,0));
+        pathSubTasks[threadId] = std::unique_ptr<APathAlgorithm>(new Dijkstra(m_Graph,0, true));
     }
 
     auto depFunc = [&](index_t nodeIndex) -> void
     {
         int threadId = omp_get_thread_num();
-        std::vector<double>& dep = deps[threadId];
+        std::unordered_map<index_t, double>& dep = deps[threadId];
 
         auto& subTask = *pathSubTasks[threadId];
         subTask.setStartNode(nodeIndex);
@@ -40,20 +42,21 @@ void BetweennessCentrality::run()
         {
             for (index_t prev : subTask.getPrevious(*it))
             {
-                weight_t w = subTask.getCountOfPathsFor(prev) / subTask.getCountOfPathsFor(*it);
-
-                weight_t c = w * (1 + dep[*it]);
-                dep[prev] += c;
+                weight_t sigma = static_cast<weight_t>(subTask.getCountOfPathsFor(prev)) / subTask.getCountOfPathsFor(*it);
+                dep[prev] += sigma * (1 + dep[*it]);
             }
             if (*it != nodeIndex)
             {
-                #pragma omp atomic
+                #pragma omp critical
                 m_NodesScoreData[*it] += dep[*it];
             }
         }
+       dep.clear();
     };
 
     m_Graph.parallelForNodes(depFunc);
 
     m_bHasRun = true;
+    double dEndTime = omp_get_wtime();
+    std::cout << "BetweennessCentrality time: " << (dEndTime - dStartTime) << std::endl;
 }

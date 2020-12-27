@@ -4,6 +4,7 @@
 
 #include "Graph/Graph.h"
 #include "Algorithms/Path/Dijkstra.h"
+#include "Algorithms/Centrality/BetweennessCentrality.h"
 
 int main() {
     /*std::cout << "Hello, World!" << std::endl;
@@ -15,7 +16,7 @@ int main() {
     Graph g;
     g.addWeightedEdgesAndNodes(
             {
-                /*{1, 6, 14},
+               {1, 6, 14},
                 {1,2,7},
                 {1,3,9},
                 {2,3,10},
@@ -23,7 +24,7 @@ int main() {
                 {3, 4, 11},
                 {3, 6, 2},
                 {5,4,6},
-                {6,5,9},*/
+                {6,5,9},
 
                     /*{1,2,3},
                     {1,3,11},
@@ -33,15 +34,15 @@ int main() {
                     {3,5,3},
                     {4,5,5}*/
 
-                    {1,2,1},
+                   /* {1,2,1},
                     {1,3,2},
-                    {2,3,1}
+                    {2,3,1},
+                    {3,4,5}*/
             }
     );
 
-    Dijkstra d(g, 1);
-    d.run();
-
+    BetweennessCentrality b(g);
+    b.run();
     return 0;
 
 }

@@ -7,8 +7,9 @@
 #include "Algorithms/Path/Dijkstra.h"
 #include "Graph/Graph.h"
 
-Dijkstra::Dijkstra(const Graph& rGraph, index_t startV, index_t endV)
+Dijkstra::Dijkstra(const Graph& rGraph, index_t startV, bool bInvertWeights, index_t endV)
 : APathAlgorithm(rGraph, startV, endV)
+, m_bInvertWeights(bInvertWeights)
 {
 
 }
@@ -49,7 +50,7 @@ void Dijkstra::run()
 
         m_SortedNodes.push_back(curNode);
 
-        m_Graph.forNeighbours(curNode, [&](index_t nodeIndex, weight_t w)
+        m_Graph.forNeighbours(curNode, m_bInvertWeights, [&](index_t nodeIndex, weight_t w)
         {
             weight_t dist = m_Distances[curNode] + w;
             if (!FIND_IN_CONTAINER(m_Distances, nodeIndex) || (m_Distances[nodeIndex] == infWeight))
@@ -59,13 +60,13 @@ void Dijkstra::run()
                 m_Previous[nodeIndex] = {curNode};
                 m_CountOfPaths[nodeIndex] = m_CountOfPaths[curNode];
             }
-            else if (m_Distances[nodeIndex] > dist)
+            else if (FIND_IN_CONTAINER(m_Distances, nodeIndex) && m_Distances[nodeIndex] > dist)
             {
                 m_Distances[nodeIndex] = dist;
                 m_Previous[nodeIndex] = {curNode};
                 m_CountOfPaths[nodeIndex] = m_CountOfPaths[curNode];
             }
-            else if (m_Distances[nodeIndex] == dist)
+            else if (FIND_IN_CONTAINER(m_Distances, nodeIndex) && m_Distances[nodeIndex] == dist)
             {
                 m_Previous[nodeIndex].push_back(curNode);
                 m_CountOfPaths[nodeIndex] += m_CountOfPaths[curNode];
