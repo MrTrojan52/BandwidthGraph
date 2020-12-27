@@ -2,47 +2,46 @@
 
 #include "omp.h"
 
-#include "Graph/Graph.h"
+#include "Graph/WeightedGraphGenerator.h"
 #include "Algorithms/Path/Dijkstra.h"
 #include "Algorithms/Centrality/BetweennessCentrality.h"
 
+#include "third_party/fort/fort.hpp"
+
 int main() {
-    /*std::cout << "Hello, World!" << std::endl;
-    #pragma omp parallel num_threads(3)
+    fort::char_table Result_table;
+    Result_table.set_cell_text_align(fort::text_align::center);
+    Result_table.set_border_style(FT_BASIC2_STYLE);
+    Result_table << fort::header << "Nodes" << "Edges" << "1 thread";
+
+    int maxThreadsCount = omp_get_max_threads();
+
+    for (int i = 2; i <= maxThreadsCount; ++i)
     {
-        std::cout << omp_get_num_threads();
-    };
-    return 0;*/
+        Result_table << std::to_string(i) + " threads";
+    }
+    Result_table << fort::endr;
+
     Graph g;
-    g.addWeightedEdgesAndNodes(
-            {
-               {1, 6, 14},
-                {1,2,7},
-                {1,3,9},
-                {2,3,10},
-                {2,4,15},
-                {3, 4, 11},
-                {3, 6, 2},
-                {5,4,6},
-                {6,5,9},
 
-                    /*{1,2,3},
-                    {1,3,11},
-                    {1,4,7},
-                    {2,4,15},
-                    {2,3,7},
-                    {3,5,3},
-                    {4,5,5}*/
 
-                   /* {1,2,1},
-                    {1,3,2},
-                    {2,3,1},
-                    {3,4,5}*/
-            }
-    );
+    std::vector<count_t> sizes{50, 100, 150, 200, 250, 300, 350};
+    for (auto size : sizes)
+    {
+        WeightedGraphGenerator::generate(g, size);
+        Result_table << g.getVertexesCount() << g.getEdgesCount();
+        for (int numThreads = 1; numThreads <= maxThreadsCount; ++numThreads)
+        {
+            omp_set_num_threads(numThreads);
+            std::cout << "Starting BetweennessCentrality with threads = " << numThreads
+            << ", nodes = " << g.getVertexesCount() << ", edges = " << g.getEdgesCount() << std::endl;
+            BetweennessCentrality b(g);
+            b.run();
+            Result_table << b.getExecutionTime();
+        }
+        Result_table << fort::endr;
+    }
 
-    BetweennessCentrality b(g);
-    b.run();
+    std::cout << Result_table.to_string();
     return 0;
-
 }

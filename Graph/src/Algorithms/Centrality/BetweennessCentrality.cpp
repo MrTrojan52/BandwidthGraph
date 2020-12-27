@@ -11,12 +11,12 @@
 
 void BetweennessCentrality::run()
 {
+    m_ExecutionTime = 0.0;
     double dStartTime = omp_get_wtime();
     count_t nodeCnt = m_Graph.getVertexesCount();
     m_NodesScoreData.clear();
 
     const int nMaxThreads = omp_get_max_threads();
-    std::cout << "Start BetweennessCentrality with " << nMaxThreads << " threads" << std::endl;
 
     std::vector<std::unordered_map<index_t, double>> deps(nMaxThreads);
     std::vector<std::unique_ptr<APathAlgorithm>> pathSubTasks;
@@ -58,5 +58,5 @@ void BetweennessCentrality::run()
 
     m_bHasRun = true;
     double dEndTime = omp_get_wtime();
-    std::cout << "BetweennessCentrality time: " << (dEndTime - dStartTime) << std::endl;
+    m_ExecutionTime = dEndTime - dStartTime;
 }

@@ -15,6 +15,7 @@ class BaseAlgorithm : public IAlgorithm
         BaseAlgorithm(const Graph& rGraph)
         : m_Graph(rGraph)
         , m_bHasRun(false)
+        , m_ExecutionTime(0.0)
         { }
 
         virtual ~BaseAlgorithm() = default;
@@ -22,10 +23,12 @@ class BaseAlgorithm : public IAlgorithm
         virtual void run() override = 0;
 
         bool hasFinished() override { return m_bHasRun; }
+        double getExecutionTime() const { return m_ExecutionTime; }
 
     protected:
         const Graph& m_Graph;
         bool m_bHasRun;
+        double m_ExecutionTime;
 };
 
 #endif //BANDWIDTHGRAPH_BASEALGORITHM_H

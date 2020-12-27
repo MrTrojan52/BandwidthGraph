@@ -110,6 +110,12 @@ void Graph::addEdge(index_t from, index_t to, weight_t weight)
     if ((FIND_IN_CONTAINER(m_ActiveNodes, from) && m_ActiveNodes[from]) &&
         (FIND_IN_CONTAINER(m_ActiveNodes, to) && m_ActiveNodes[to]))
     {
+        if (std::find_if(m_EdgesOut.begin(), m_EdgesOut.end(), [from,to](const WeightedEdge& e) { return ((e.from == from) && (e.to == to));})
+        != m_EdgesOut.end())
+        {
+            return;
+        }
+
         m_EdgesOut.insert({from, to, weight});
         m_EdgesOut.insert({to, from, weight});
 
@@ -149,5 +155,14 @@ void Graph::addWeightedEdgesAndNodes(std::initializer_list<WeightedEdge> edges)
         addNode(e.to);
         addEdge(e.from, e.to, e.weight);
     }
+}
+
+void Graph::clearGraph()
+{
+    m_MaxEdgeWeight = 0.0;
+    m_EdgesOut.clear();
+    m_ActiveNodes.clear();
+    m_nVertexesCount = 0;
+    m_nEdgesCount = 0;
 }
 

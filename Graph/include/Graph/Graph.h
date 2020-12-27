@@ -45,6 +45,7 @@ class Graph
 
 private:
         void addArcsFromJSONForNode(int from, const nlohmann::json& j);
+        void clearGraph();
 
         std::unordered_map<index_t, bool> m_ActiveNodes;
 
@@ -53,6 +54,7 @@ private:
         count_t m_nEdgesCount;
         weight_t m_MaxEdgeWeight;
 
+friend class WeightedGraphGenerator;
 };
 
 template <typename func_obj>
