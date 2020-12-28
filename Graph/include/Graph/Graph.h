@@ -74,8 +74,9 @@ void Graph::forNeighbours(index_t nodeIndex, bool bInvert, func_obj func) const
 template <typename func_obj>
 void Graph::parallelForNodes(func_obj func) const
 {
-    #pragma omp parallel for schedule(dynamic)
-    for (count_t i = 0; i < m_ActiveNodes.size(); ++i)
+    int i;
+    #pragma omp parallel for schedule(guided) private(i)
+    for (i = 0; i < m_ActiveNodes.size(); ++i)
     {
         auto it = std::next(m_ActiveNodes.cbegin(), i);
         if (it->second)

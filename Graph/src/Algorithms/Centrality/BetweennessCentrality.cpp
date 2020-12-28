@@ -25,12 +25,16 @@ void BetweennessCentrality::run()
     #pragma omp parallel
     {
         int threadId = omp_get_thread_num();
-        pathSubTasks[threadId] = std::unique_ptr<APathAlgorithm>(new Dijkstra(m_Graph,0, true));
+        pathSubTasks[threadId] = std::unique_ptr<APathAlgorithm>(new Dijkstra(m_Graph,0, false));
     }
 
     auto depFunc = [&](index_t nodeIndex) -> void
     {
         int threadId = omp_get_thread_num();
+        /*#pragma omp critical
+        {
+            std::cout << "[" << threadId << " | " << nodeIndex << "]" << std::endl;
+        }*/
         std::unordered_map<index_t, double>& dep = deps[threadId];
 
         auto& subTask = *pathSubTasks[threadId];
@@ -48,7 +52,9 @@ void BetweennessCentrality::run()
             if (*it != nodeIndex)
             {
                 #pragma omp critical
-                m_NodesScoreData[*it] += dep[*it];
+                {
+                    m_NodesScoreData[*it] += dep[*it];
+                }
             }
         }
        dep.clear();
